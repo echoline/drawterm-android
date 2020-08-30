@@ -1,0 +1,34 @@
+DESCRIPTION
+-----------
+This is a fork of Russ Cox's drawterm to incorporate features
+from Plan9front (http://9front.org), most importantly DP9IK
+authentication support (see authsrv(6)) and the TLS based rcpu(1)
+protocol.
+
+
+INSTALLATION
+--------------
+To build on Unix, run CONF=unix make.
+
+To build on Solaris using Sun cc, run CONF=sun make.
+
+To build on Windows, you can't use Visual C. Use Mingw on cygwin.
+
+To build on Mac OS X with X11 (xquartz), run CONF=osx-x11 make.
+
+To build on Mac OS X with Cocoa, run CONF=osx-cocoa make and "cp drawterm gui-cocoa/drawterm.app/".
+
+
+BINARIES
+---------
+http://drawterm.9front.org/
+
+
+SOURCE
+------
+https://code.9front.org/hg/drawterm
+
+
+HELP
+----
+No.
