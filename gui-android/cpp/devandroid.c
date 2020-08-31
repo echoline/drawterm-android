@@ -184,7 +184,7 @@ androidgen(Chan *c, char *n, Dirtab *d, int nd, int s, Dir *dp)
     if (s < Ncameras) {
         sprintf(up->genbuf, "cam%d.jpg", s);
         mkqid(&q, (s << 4) | Qcam, 0, QTFILE);
-        devdir(c, q, up->genbuf, 0, eve, 444, dp);
+        devdir(c, q, up->genbuf, 0, eve, 0444, dp);
         return 1;
     }
     return -1;

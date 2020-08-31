@@ -1,4 +1,7 @@
 #include <jni.h>
+#include <android/native_window.h>
+#include <android/native_window_jni.h>
+#include <android/log.h>
 #include <u.h>
 #include <libc.h>
 #include <draw.h>
@@ -7,15 +10,15 @@
 void absmousetrack(int, int, int, ulong);
 ulong ticks(void);
 int dt_main(int, char**);
-int screenWidth = 800;
-int screenHeight = 1232;
+int screenWidth;
+int screenHeight;
 Point mousept = {0, 0};
 int buttons = 0;
-unsigned char* screenData();
 float ws = 1;
 float hs = 1;
 extern char *snarfbuf;
 int mPaused = 0;
+ANativeWindow *window = NULL;
 
 JNIEXPORT void JNICALL
 Java_org_echoline_drawterm_MainActivity_setPass(
@@ -55,15 +58,6 @@ Java_org_echoline_drawterm_MainActivity_setHeightScale(
         jobject obj,
         jfloat s) {
     hs = s;
-}
-
-JNIEXPORT jbyteArray JNICALL
-Java_org_echoline_drawterm_MainActivity_getScreenData(
-        JNIEnv *env,
-        jobject obj) {
-    jbyteArray buf = (*env)->NewByteArray(env, screenHeight * screenWidth * 4);
-    (*env)->SetByteArrayRegion(env, buf, 0, screenWidth * screenHeight * 4, (jbyte*)screenData());
-    return buf;
 }
 
 JNIEXPORT jint JNICALL
@@ -142,4 +136,19 @@ Java_org_echoline_drawterm_MainActivity_resumeDT(
         JNIEnv *env,
         jobject obj) {
     mPaused = 0;
+}
+
+JNIEXPORT void JNICALL
+Java_org_echoline_drawterm_MainActivity_setDTSurface(
+	JNIEnv* jenv,
+	jobject obj,
+	jobject surface) {
+    if (surface != NULL) {
+        window = ANativeWindow_fromSurface(jenv, surface);
+	ANativeWindow_setBuffersGeometry(window, screenWidth, screenHeight,
+		AHARDWAREBUFFER_FORMAT_R8G8B8X8_UNORM);
+    } else {
+        ANativeWindow_release(window);
+	window = NULL;
+    }
 }

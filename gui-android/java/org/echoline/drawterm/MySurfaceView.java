@@ -1,16 +1,18 @@
 package org.echoline.drawterm;
 
+import android.util.Log;
+
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
 import android.graphics.Bitmap;
-import android.graphics.Canvas;
-import android.graphics.Paint;
 import android.os.SystemClock;
 import android.view.MotionEvent;
 import android.view.SurfaceView;
+import android.view.SurfaceHolder;
 import android.view.View;
 import android.widget.CheckBox;
+import android.widget.EditText;
 
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
@@ -19,12 +21,10 @@ import java.security.spec.ECField;
 /**
  * Created by eli on 12/3/17.
  */
-public class MySurfaceView extends SurfaceView {
-    private Bitmap bmp;
+public class MySurfaceView extends SurfaceView implements SurfaceHolder.Callback {
     private int screenWidth, screenHeight;
     private MainActivity mainActivity;
     private float ws, hs;
-    private Paint paint = new Paint();
 
     public MySurfaceView(Context context, int w, int h, float ws, float hs) {
         super(context);
@@ -37,7 +37,9 @@ public class MySurfaceView extends SurfaceView {
         mainActivity.setHeight(screenHeight);
         mainActivity.setWidthScale(ws);
         mainActivity.setHeightScale(hs);
-        setWillNotDraw(false);
+        setWillNotDraw(true);
+
+	getHolder().addCallback(this);
 
         Listener listener = new Listener();
         listener.onPrimaryClipChanged();
@@ -79,7 +81,6 @@ public class MySurfaceView extends SurfaceView {
                 return true;
             }
         });
-        bmp = Bitmap.createBitmap(screenWidth, screenHeight, Bitmap.Config.ARGB_8888);
         new Thread(new Runnable() {
             private long last = 0;
             private long lastcb = 0;
@@ -87,15 +88,6 @@ public class MySurfaceView extends SurfaceView {
             @Override
             public void run() {
                 while (true) {
-                    if ((SystemClock.currentThreadTimeMillis() - last) > 250) {
-                        mainActivity.runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                MySurfaceView.this.invalidate();
-                            }
-                        });
-                        last = SystemClock.currentThreadTimeMillis();
-                    }
                     if ((SystemClock.currentThreadTimeMillis() - lastcb) > 1500) {
                         new Thread(new Runnable() {
                             @Override
@@ -127,17 +119,17 @@ public class MySurfaceView extends SurfaceView {
     }
 
     @Override
-    protected void onDraw(Canvas canvas) {
-        super.onDraw(canvas);
+    public void surfaceCreated(SurfaceHolder holder) {
+        mainActivity.setDTSurface(holder.getSurface());
+    }
 
-        IntBuffer intBuffer = ByteBuffer.wrap(mainActivity.getScreenData()).asIntBuffer();
-        int []ints = new int[intBuffer.remaining()];
-        intBuffer.get(ints);
-        bmp.setPixels(ints, 0, screenWidth, 0, 0, screenWidth, screenHeight);
-        canvas.save();
-        canvas.scale(ws, hs);
-        canvas.drawBitmap(bmp, 0, 0, paint);
-        canvas.restore();
+    @Override
+    public void surfaceChanged(SurfaceHolder holder, int w, int h, int format) {
+    }
+
+    @Override
+    public void surfaceDestroyed(SurfaceHolder holder) {
+        mainActivity.setDTSurface(null);
     }
 
     protected class Listener implements ClipboardManager.OnPrimaryClipChangedListener {

@@ -19,6 +19,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.WindowManager;
 import android.view.WindowMetrics;
+import android.view.Surface;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
@@ -102,12 +103,14 @@ public class MainActivity extends Activity {
                 String user = ((EditText)MainActivity.this.findViewById(R.id.userName)).getText().toString();
                 String pass = ((EditText)MainActivity.this.findViewById(R.id.passWord)).getText().toString();
 
-                int wp = MainActivity.this.getWindow().getDecorView().getWidth();
-                int hp = MainActivity.this.getWindow().getDecorView().getHeight();
+                Resources res = MainActivity.this.getResources();
+                DisplayMetrics dm = res.getDisplayMetrics();
+
+                int wp = dm.widthPixels;
+                int hp = dm.heightPixels;
 
                 setContentView(R.layout.drawterm_main);
 
-                Resources res = MainActivity.this.getResources();
                 int rid = res.getIdentifier("navigation_bar_height", "dimen", "android");
                 if (rid > 0) {
                     hp -= res.getDimensionPixelSize(rid);
@@ -115,7 +118,6 @@ public class MainActivity extends Activity {
                 LinearLayout ll = findViewById(R.id.mouseButtons);
                 hp -= ll.getHeight();
 
-                DisplayMetrics dm = res.getDisplayMetrics();
                 int w = (int)(wp * (160.0/dm.xdpi));
                 int h = (int)(hp * (160.0/dm.ydpi));
                 float ws = (float)wp/w;
@@ -131,11 +133,13 @@ public class MainActivity extends Activity {
                 }
 
                 MySurfaceView mView = new MySurfaceView(MainActivity.this, w, h, ws, hs);
-                LinearLayout l = MainActivity.this.findViewById(R.id.dlayout);
-                l.addView(mView, 1, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
+		mView.getHolder().setFixedSize(w, h);
 
-                DrawTermThread t = new DrawTermThread(cpu, auth, user, pass, MainActivity.this);
-                t.start();
+                LinearLayout l = MainActivity.this.findViewById(R.id.dlayout);
+                l.addView(mView, 1, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.FILL_PARENT, LinearLayout.LayoutParams.FILL_PARENT));
+
+	        DrawTermThread t = new DrawTermThread(cpu, auth, user, pass, MainActivity.this);
+        	t.start();
             }
         });
     }
@@ -146,8 +150,6 @@ public class MainActivity extends Activity {
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         File dir = Environment.getStorageDirectory();
-        Log.d("drawterm", dir.toString());
-        Log.d("drawterm", Environment.getExternalStorageState());
 
         setContentView(R.layout.activity_main);
         populateServers(this);
@@ -189,17 +191,13 @@ public class MainActivity extends Activity {
         return true;
     }
 
-    /**
-     * A native method that is implemented by the 'native-lib' native library,
-     * which is packaged with this application.
-     */
     public native void dtmain(Object[] args);
     public native void setPass(String arg);
     public native void setWidth(int arg);
     public native void setHeight(int arg);
     public native void setWidthScale(float arg);
     public native void setHeightScale(float arg);
-    public native byte[] getScreenData();
+    public native void setDTSurface(Surface surface);
     public native void setMouse(int[] args);
     public native String getSnarf();
     public native void setSnarf(String str);

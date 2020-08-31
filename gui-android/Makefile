@@ -4,9 +4,7 @@ LIB=libgui.a
 
 OFILES=\
 	cpp/android.$O\
-	cpp/computil.$O\
 	cpp/devandroid.$O\
-	cpp/flushimage.$O\
 	cpp/native-lib.$O\
 
 default: $(LIB) gen/org/echoline/drawterm/R.java bin/classes.dex
