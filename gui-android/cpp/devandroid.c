@@ -10,11 +10,14 @@
 #include <camera/NdkCameraManager.h>
 #include <media/NdkImageReader.h>
 #include <android/log.h>
+#include <android/sensor.h>
 
 enum
 {
 	Qdir		= 0,
-	Qcam,
+	Qcam		= 1,
+	Qaccel		= 2,
+	Qcompass	= 4,
 };
 #define QID(p, c, y) 	(((p)<<16) | ((c)<<4) | (y))
 
@@ -36,6 +39,7 @@ static ACaptureSessionOutputContainer **container = NULL;
 static ACaptureSessionOutput **output = NULL;
 static ACameraOutputTarget **target = NULL;
 static ACameraIdList *cameras = NULL;
+static ASensorManager *sensorManager = NULL;
 
 static void androidinit(void);
 
@@ -111,6 +115,8 @@ androidinit(void)
 	container = malloc(sizeof(ACaptureSessionOutputContainer*) * Ncameras);
 	output = malloc(sizeof(ACaptureSessionOutput*) * Ncameras);
 	target = malloc(sizeof(ACameraOutputTarget*) * Ncameras);
+
+	sensorManager = ASensorManager_getInstanceForPackage("org.echoline.drawterm");
 }
 
 static Chan*
@@ -139,6 +145,18 @@ androidgen(Chan *c, char *n, Dirtab *d, int nd, int s, Dir *dp)
 	if (s < Ncameras) {
 		sprintf(up->genbuf, "cam%d.jpg", s);
 		mkqid(&q, (s << 4) | Qcam, 0, QTFILE);
+		devdir(c, q, up->genbuf, 0, eve, 0444, dp);
+		return 1;
+	}
+	if (s == Ncameras) {
+		sprintf(up->genbuf, "accel");
+		mkqid(&q, Qaccel, 0, QTFILE);
+		devdir(c, q, up->genbuf, 0, eve, 0444, dp);
+		return 1;
+	}
+	if (s == (Ncameras+1)) {
+		sprintf(up->genbuf, "compass");
+		mkqid(&q, Qcompass, 0, QTFILE);
 		devdir(c, q, up->genbuf, 0, eve, 0444, dp);
 		return 1;
 	}
@@ -252,6 +270,9 @@ androidread(Chan *c, void *v, long n, vlong off)
 	CAux *aux;
 	long l;
 	int i = c->qid.path >> 4;
+	const ASensor *sensor;
+	ASensorEventQueue *queue = NULL;
+	ASensorEvent data;
 
 	switch((ulong)c->qid.path & 0xF) {
 		default:
@@ -272,6 +293,42 @@ androidread(Chan *c, void *v, long n, vlong off)
 			if (l > n)
 				l = n;
 			memcpy(a, &aux->data[off], l);
+			return l;
+		case Qaccel:
+			queue = ASensorManager_createEventQueue(sensorManager, ALooper_prepare(ALOOPER_PREPARE_ALLOW_NON_CALLBACKS), 1, NULL, NULL);
+			if (queue == NULL)
+				return 0;
+			sensor = ASensorManager_getDefaultSensor(sensorManager, ASENSOR_TYPE_ACCELEROMETER_UNCALIBRATED);
+			if (sensor == NULL)
+				return 0;
+			if (ASensorEventQueue_enableSensor(queue, sensor))
+				return 0;
+			l = 0;
+			if (ALooper_pollAll(1000, NULL, NULL, NULL) == 1) {
+				if (ASensorEventQueue_getEvents(queue, &data, 1)) {
+					l = snprint(a, n, "%11f %11f %11f\n", data.acceleration.x, data.acceleration.y, data.acceleration.z);
+				}
+			}
+			ASensorEventQueue_disableSensor(queue, sensor);
+			ASensorManager_destroyEventQueue(sensorManager, queue);
+			return l;
+		case Qcompass:
+			queue = ASensorManager_createEventQueue(sensorManager, ALooper_prepare(ALOOPER_PREPARE_ALLOW_NON_CALLBACKS), 1, NULL, NULL);
+			if (queue == NULL)
+				return 0;
+			sensor = ASensorManager_getDefaultSensor(sensorManager, ASENSOR_TYPE_MAGNETIC_FIELD);
+			if (sensor == NULL)
+				return 0;
+			if (ASensorEventQueue_enableSensor(queue, sensor))
+				return 0;
+			l = 0;
+			if (ALooper_pollAll(1000, NULL, NULL, NULL) == 1) {
+				if (ASensorEventQueue_getEvents(queue, &data, 1)) {
+					l = snprint(a, n, "%11f %11f %11f\n", data.magnetic.x, data.magnetic.y, data.magnetic.z);
+				}
+			}
+			ASensorEventQueue_disableSensor(queue, sensor);
+			ASensorManager_destroyEventQueue(sensorManager, queue);
 			return l;
 		case Qdir:
 			return devdirread(c, a, n, 0, 0, androidgen);
