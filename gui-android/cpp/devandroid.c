@@ -242,25 +242,28 @@ androidopen(Chan *c, int omode)
 static void
 androidclose(Chan *c)
 {
-	int i = (int)c->aux;
-	if (datas[i] == NULL)
-		return;
-	CAux *aux = datas[i];
-	free(aux->data);
-	free(aux);
-	datas[i] = NULL;
-	ACaptureSessionOutputContainer_free(container[i]);
-	ACaptureSessionOutput_free(output[i]);
-	ACameraCaptureSession_close(sessions[i]);
-	ACameraOutputTarget_free(target[i]);
-	ACaptureRequest_free(requests[i]);
-	AImageReader_delete(readers[i]);
-	AImage_delete(images[i]);
-	if (datas[i] != NULL) {
-		free(datas[i]->data);
-		free(datas[i]);
+	int i;
+	if (c->qid.path & Qcam) {
+		i = (int)c->aux;
+		if (datas[i] == NULL)
+			return;
+		CAux *aux = datas[i];
+		free(aux->data);
+		free(aux);
+		datas[i] = NULL;
+		ACaptureSessionOutputContainer_free(container[i]);
+		ACaptureSessionOutput_free(output[i]);
+		ACameraCaptureSession_close(sessions[i]);
+		ACameraOutputTarget_free(target[i]);
+		ACaptureRequest_free(requests[i]);
+		AImageReader_delete(readers[i]);
+		AImage_delete(images[i]);
+		if (datas[i] != NULL) {
+			free(datas[i]->data);
+			free(datas[i]);
+		}
+		ACameraDevice_close(devices[i]);
 	}
-	ACameraDevice_close(devices[i]);
 }
 
 static long
