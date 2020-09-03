@@ -20,6 +20,14 @@ To build on Mac OS X with Cocoa, run CONF=osx-cocoa make and "cp drawterm gui-co
 
 To build for Android, make sure Make.android is correct for your build and target systems, then run CONF=android make, then CONF=android make drawterm.apk
 
+On Android, there is no keyboard support in the app, the bitsy/keyboard on-screen keyboard must be used. From $home/lib/profile:
+
+``
+		if(test -e /mnt/term/root/mnt/sdcard)
+			rio -s -k 'bitsy/keyboard -n' -i riostart
+		if not
+			rio -s -i riostart
+``
 
 BINARIES
 ---------
