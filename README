@@ -22,12 +22,12 @@ To build for Android, make sure Make.android is correct for your build and targe
 
 On Android, there is no keyboard support in the app, the bitsy/keyboard on-screen keyboard must be used. From $home/lib/profile:
 
-``
-		if(test -e /mnt/term/root/mnt/sdcard)
-			rio -s -k 'bitsy/keyboard -n' -i riostart
-		if not
-			rio -s -i riostart
-``
+	if(test -e /mnt/term/root/mnt/sdcard)
+		rio -s -k 'bitsy/keyboard -n' -i riostart
+	if not
+		rio -s -i riostart
+
+The five checkboxes at the top represent the three mouse buttons and mousewheel, determining which "buttons" are clicked.
 
 BINARIES
 ---------
