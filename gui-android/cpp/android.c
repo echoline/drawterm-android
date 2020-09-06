@@ -1,3 +1,4 @@
+#include <jni.h>
 #include <android/native_window.h>
 #include <android/log.h>
 
@@ -17,6 +18,8 @@ extern int screenWidth;
 extern int screenHeight;
 char *snarfbuf = nil;
 extern ANativeWindow *window;
+extern jobject mainActivityObj;
+extern JavaVM *jvm;
 
 char*
 clipread(void)
@@ -27,6 +30,13 @@ clipread(void)
 int
 clipwrite(char *buf)
 {
+	JNIEnv *env;
+	jint rs = (*jvm)->GetEnv(jvm, (void**)&env, JNI_VERSION_1_6);
+	assert(rs == JNI_OK);
+	jclass clazz = (*env)->GetObjectClass(env, mainActivityObj);
+	jmethodID methodID = (*env)->GetMethodID(env, clazz, "setClipBoard", "(Ljava/lang/String;)V");
+        jstring str = (*env)->NewStringUTF(env, buf);
+	(*env)->CallVoidMethod(env, mainActivityObj, methodID, str);
 	if (snarfbuf != nil)
 		free(snarfbuf);
 	snarfbuf = strdup(buf);

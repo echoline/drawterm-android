@@ -81,41 +81,6 @@ public class MySurfaceView extends SurfaceView implements SurfaceHolder.Callback
 				return true;
 			}
 		});
-		new Thread(new Runnable() {
-			private long last = 0;
-			private long lastcb = 0;
-
-			@Override
-			public void run() {
-				while (true) {
-					if ((SystemClock.currentThreadTimeMillis() - lastcb) > 1500) {
-						new Thread(new Runnable() {
-							@Override
-							public void run() {
-								String s = mainActivity.getSnarf();
-								ClipboardManager cm = (ClipboardManager) mainActivity.getApplicationContext().getSystemService(Context.CLIPBOARD_SERVICE);
-								if (cm != null) {
-									ClipData cd = cm.getPrimaryClip();
-									String t = "";
-									if (cd != null)
-										t = cd.getItemAt(0).coerceToText(mainActivity.getApplicationContext()).toString();
-									if (cd == null || !t.equals(s)) {
-										cd = ClipData.newPlainText(null, s);
-										cm.setPrimaryClip(cd);
-									}
-								}
-							}
-						}).start();
-						lastcb = SystemClock.currentThreadTimeMillis();
-					}
-					try {
-						// TODO EBC seconds and millis?
-						Thread.sleep(0, 5000);
-					} catch(Exception e) {
-					}
-				}
-			}
-		}).start();
 	}
 
 	@Override

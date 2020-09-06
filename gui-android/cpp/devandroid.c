@@ -144,7 +144,7 @@ androidgen(Chan *c, char *n, Dirtab *d, int nd, int s, Dir *dp)
 	}
 	if (s < Ncameras) {
 		sprintf(up->genbuf, "cam%d.jpg", s);
-		mkqid(&q, (s << 4) | Qcam, 0, QTFILE);
+		mkqid(&q, (s << 16) | Qcam, 0, QTFILE);
 		devdir(c, q, up->genbuf, 0, eve, 0444, dp);
 		return 1;
 	}
@@ -214,7 +214,7 @@ androidopen(Chan *c, int omode)
 	};
 
 	if (c->qid.path & Qcam) {
-		s = c->qid.path >> 4;
+		s = c->qid.path >> 16;
 		c->aux = (void*)s;
 		images[s] = NULL;
 		ACameraManager_openCamera(manager, cameras->cameraIds[s], &SCBs, &devices[s]);
@@ -272,7 +272,7 @@ androidread(Chan *c, void *v, long n, vlong off)
 	char *a = v;
 	CAux *aux;
 	long l;
-	int i = c->qid.path >> 4;
+	int i = c->qid.path >> 16;
 	const ASensor *sensor;
 	ASensorEventQueue *queue = NULL;
 	ASensorEvent data;
@@ -341,7 +341,11 @@ androidread(Chan *c, void *v, long n, vlong off)
 static long
 androidwrite(Chan *c, void *vp, long n, vlong off)
 {
-	error(Eperm);
+	switch((ulong)c->qid.path) {
+		default:
+			error(Eperm);
+			break;
+	}
 	return -1;
 }
 

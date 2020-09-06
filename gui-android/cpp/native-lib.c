@@ -19,6 +19,17 @@ float hs = 1;
 extern char *snarfbuf;
 int mPaused = 0;
 ANativeWindow *window = NULL;
+jobject mainActivityObj;
+JavaVM *jvm;
+
+JNIEXPORT void JNICALL
+Java_org_echoline_drawterm_MainActivity_setObject(
+        JNIEnv *env,
+        jobject obj) {
+    mainActivityObj = (*env)->NewGlobalRef(env, obj);
+    jint rs = (*env)->GetJavaVM(env, &jvm);
+    assert(rs == JNI_OK);
+}
 
 JNIEXPORT void JNICALL
 Java_org_echoline_drawterm_MainActivity_setPass(

@@ -26,6 +26,8 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.content.ClipData;
+import android.content.ClipboardManager;
 
 import java.io.File;
 import java.util.Map;
@@ -152,6 +154,7 @@ public class MainActivity extends Activity {
 		File dir = Environment.getStorageDirectory();
 
 		mainActivity = this;
+		setObject();
 		setContentView(R.layout.activity_main);
 		populateServers(this);
 
@@ -163,6 +166,14 @@ public class MainActivity extends Activity {
 				serverButtons();
 			}
 		});
+	}
+
+	public void setClipBoard(String str) {
+		ClipboardManager cm = (ClipboardManager)getApplicationContext().getSystemService(Context.CLIPBOARD_SERVICE);
+		if (cm != null) {
+			ClipData cd = ClipData.newPlainText(null, str);
+			cm.setPrimaryClip(cd);
+		}
 	}
 
 	public native void dtmain(Object[] args);
@@ -177,4 +188,5 @@ public class MainActivity extends Activity {
 	public native void setSnarf(String str);
 	public native void pauseDT();
 	public native void resumeDT();
+	public native void setObject();
 }
