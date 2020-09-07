@@ -40,18 +40,6 @@ public class MainActivity extends Activity {
 		System.loadLibrary("drawterm");
 	}
 
-	@Override
-	protected void onPause() {
-		super.onPause();
-		pauseDT();
-	}
-
-	@Override
-	protected void onResume() {
-		super.onResume();
-		resumeDT();
-	}
-
 	public void serverView(View v) {
 		setContentView(R.layout.server_main);
 		serverButtons();
@@ -176,6 +164,16 @@ public class MainActivity extends Activity {
 		}
 	}
 
+	public String getClipBoard() {
+		ClipboardManager cm = (ClipboardManager)getApplicationContext().getSystemService(Context.CLIPBOARD_SERVICE);
+		if (cm != null) {
+			ClipData cd = cm.getPrimaryClip();
+			if (cd != null)
+				return (String)(cd.getItemAt(0).coerceToText(mainActivity.getApplicationContext()).toString());
+		}
+		return "";
+	}
+
 	public native void dtmain(Object[] args);
 	public native void setPass(String arg);
 	public native void setWidth(int arg);
@@ -184,9 +182,5 @@ public class MainActivity extends Activity {
 	public native void setHeightScale(float arg);
 	public native void setDTSurface(Surface surface);
 	public native void setMouse(int[] args);
-	public native String getSnarf();
-	public native void setSnarf(String str);
-	public native void pauseDT();
-	public native void resumeDT();
 	public native void setObject();
 }

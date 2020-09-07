@@ -112,43 +112,6 @@ Java_org_echoline_drawterm_MainActivity_setMouse(
     absmousetrack(mousept.x, mousept.y, buttons, ticks());
 }
 
-JNIEXPORT jstring JNICALL
-Java_org_echoline_drawterm_MainActivity_getSnarf(
-        JNIEnv *env,
-        jobject obj) {
-    jstring ret = NULL;
-    if (snarfbuf != NULL) {
-        ret = (*env)->NewStringUTF(env, snarfbuf);
-    } else {
-        ret = (*env)->NewStringUTF(env, "");
-    }
-    return ret;
-}
-
-JNIEXPORT void JNICALL
-Java_org_echoline_drawterm_MainActivity_setSnarf(
-        JNIEnv *env,
-        jobject obj,
-        jstring str) {
-    if (snarfbuf != NULL)
-        free(snarfbuf);
-    snarfbuf = strdup((*env)->GetStringUTFChars(env, str, 0));
-}
-
-JNIEXPORT void JNICALL
-Java_org_echoline_drawterm_MainActivity_pauseDT(
-        JNIEnv *env,
-        jobject obj) {
-    mPaused = 1;
-}
-
-JNIEXPORT void JNICALL
-Java_org_echoline_drawterm_MainActivity_resumeDT(
-        JNIEnv *env,
-        jobject obj) {
-    mPaused = 0;
-}
-
 JNIEXPORT void JNICALL
 Java_org_echoline_drawterm_MainActivity_setDTSurface(
 	JNIEnv* jenv,

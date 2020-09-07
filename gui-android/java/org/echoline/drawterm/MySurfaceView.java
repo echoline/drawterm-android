@@ -2,8 +2,6 @@ package org.echoline.drawterm;
 
 import android.util.Log;
 
-import android.content.ClipData;
-import android.content.ClipboardManager;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.os.SystemClock;
@@ -40,12 +38,6 @@ public class MySurfaceView extends SurfaceView implements SurfaceHolder.Callback
 		setWillNotDraw(true);
 
 		getHolder().addCallback(this);
-
-		Listener listener = new Listener();
-		listener.onPrimaryClipChanged();
-		ClipboardManager cm = (ClipboardManager)mainActivity.getApplicationContext().getSystemService(Context.CLIPBOARD_SERVICE);
-		if (cm != null)
-			cm.addPrimaryClipChangedListener(listener);
 
 		setOnTouchListener(new View.OnTouchListener() {
 			private int[] mouse = new int[3];
@@ -95,16 +87,5 @@ public class MySurfaceView extends SurfaceView implements SurfaceHolder.Callback
 	@Override
 	public void surfaceDestroyed(SurfaceHolder holder) {
 		mainActivity.setDTSurface(null);
-	}
-
-	protected class Listener implements ClipboardManager.OnPrimaryClipChangedListener {
-		public void onPrimaryClipChanged() {
-			ClipboardManager cm = (ClipboardManager)mainActivity.getApplicationContext().getSystemService(Context.CLIPBOARD_SERVICE);
-			if (cm != null) {
-				ClipData cd = cm.getPrimaryClip();
-				if (cd != null)
-					mainActivity.setSnarf((String) (cd.getItemAt(0).coerceToText(mainActivity.getApplicationContext()).toString()));
-			}
-		}
 	}
 }

@@ -16,7 +16,6 @@
 Memimage *gscreen = nil;
 extern int screenWidth;
 extern int screenHeight;
-char *snarfbuf = nil;
 extern ANativeWindow *window;
 extern jobject mainActivityObj;
 extern JavaVM *jvm;
@@ -24,7 +23,22 @@ extern JavaVM *jvm;
 char*
 clipread(void)
 {
-	return strdup(snarfbuf == nil? "": snarfbuf);
+	char *ret;
+	const char *s;
+	JNIEnv *env;
+	jint rs = (*jvm)->AttachCurrentThread(jvm, &env, NULL);
+	if (rs != JNI_OK) {
+		__android_log_print(ANDROID_LOG_WARN, "drawterm", "AttachCurrentThread returned error: %d", rs);
+		return strdup("");
+	}
+	jclass clazz = (*env)->GetObjectClass(env, mainActivityObj);
+	jmethodID methodID = (*env)->GetMethodID(env, clazz, "getClipBoard", "()Ljava/lang/String;");
+        jstring str = (jstring)(*env)->CallObjectMethod(env, mainActivityObj, methodID);
+	s = (*env)->GetStringUTFChars(env, str, NULL);
+	ret = strdup(s);
+	(*env)->ReleaseStringUTFChars(env, str, s);
+	(*jvm)->DetachCurrentThread(jvm);
+	return ret;
 }
 
 int
@@ -32,14 +46,14 @@ clipwrite(char *buf)
 {
 	JNIEnv *env;
 	jint rs = (*jvm)->GetEnv(jvm, (void**)&env, JNI_VERSION_1_6);
-	assert(rs == JNI_OK);
+	if(rs != JNI_OK) {
+		__android_log_print(ANDROID_LOG_WARN, "drawterm", "GetEnv returned error: %d", rs);
+		return 0;
+	}
 	jclass clazz = (*env)->GetObjectClass(env, mainActivityObj);
 	jmethodID methodID = (*env)->GetMethodID(env, clazz, "setClipBoard", "(Ljava/lang/String;)V");
         jstring str = (*env)->NewStringUTF(env, buf);
 	(*env)->CallVoidMethod(env, mainActivityObj, methodID, str);
-	if (snarfbuf != nil)
-		free(snarfbuf);
-	snarfbuf = strdup(buf);
 	return 0;
 }
 
