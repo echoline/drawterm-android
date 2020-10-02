@@ -21,6 +21,7 @@ int mPaused = 0;
 ANativeWindow *window = NULL;
 jobject mainActivityObj;
 JavaVM *jvm;
+void flushmemscreen(Rectangle r);
 
 JNIEXPORT void JNICALL
 Java_org_echoline_drawterm_MainActivity_setObject(
@@ -121,6 +122,7 @@ Java_org_echoline_drawterm_MainActivity_setDTSurface(
         window = ANativeWindow_fromSurface(jenv, surface);
 	ANativeWindow_setBuffersGeometry(window, screenWidth, screenHeight,
 		AHARDWAREBUFFER_FORMAT_R8G8B8X8_UNORM);
+	flushmemscreen(Rect(0, 0, screenWidth, screenHeight));
     } else {
         ANativeWindow_release(window);
 	window = NULL;

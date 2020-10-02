@@ -156,6 +156,11 @@ public class MainActivity extends Activity {
 		});
 	}
 
+	@Override
+	public void onBackPressed()
+	{
+	}
+
 	public void setClipBoard(String str) {
 		ClipboardManager cm = (ClipboardManager)getApplicationContext().getSystemService(Context.CLIPBOARD_SERVICE);
 		if (cm != null) {
