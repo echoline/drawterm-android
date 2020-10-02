@@ -302,10 +302,15 @@ androidread(Chan *c, void *v, long n, vlong off)
 			if (queue == NULL)
 				return 0;
 			sensor = ASensorManager_getDefaultSensor(sensorManager, ASENSOR_TYPE_ACCELEROMETER_UNCALIBRATED);
-			if (sensor == NULL)
+			if (sensor == NULL) {
+				ASensorManager_destroyEventQueue(sensorManager, queue);
 				return 0;
-			if (ASensorEventQueue_enableSensor(queue, sensor))
+			}
+			if (ASensorEventQueue_enableSensor(queue, sensor)) {
+				ASensorEventQueue_disableSensor(queue, sensor);
+				ASensorManager_destroyEventQueue(sensorManager, queue);
 				return 0;
+			}
 			l = 0;
 			if (ALooper_pollAll(1000, NULL, NULL, NULL) == 1) {
 				if (ASensorEventQueue_getEvents(queue, &data, 1)) {
@@ -320,10 +325,15 @@ androidread(Chan *c, void *v, long n, vlong off)
 			if (queue == NULL)
 				return 0;
 			sensor = ASensorManager_getDefaultSensor(sensorManager, ASENSOR_TYPE_MAGNETIC_FIELD);
-			if (sensor == NULL)
+			if (sensor == NULL) {
+				ASensorManager_destroyEventQueue(sensorManager, queue);
 				return 0;
-			if (ASensorEventQueue_enableSensor(queue, sensor))
+			}
+			if (ASensorEventQueue_enableSensor(queue, sensor)) {
+				ASensorEventQueue_disableSensor(queue, sensor);
+				ASensorManager_destroyEventQueue(sensorManager, queue);
 				return 0;
+			}
 			l = 0;
 			if (ALooper_pollAll(1000, NULL, NULL, NULL) == 1) {
 				if (ASensorEventQueue_getEvents(queue, &data, 1)) {
