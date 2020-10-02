@@ -29,6 +29,10 @@ On Android, there is no keyboard support in the app, the bitsy/keyboard on-scree
 
 The five checkboxes at the top represent the three mouse buttons and mousewheel, determining which "buttons" are clicked.
 
+CAVEATS
+--------
+Be aware that right now on Android the login details are saved as a plaintext string if saved, and there is no secstore support.
+
 BINARIES
 ---------
 http://drawterm.9front.org/
