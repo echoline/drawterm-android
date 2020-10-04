@@ -53,7 +53,8 @@ public class MainActivity extends Activity {
 		((EditText)findViewById(R.id.cpuServer)).setText((String)a[0]);
 		((EditText)findViewById(R.id.authServer)).setText((String)a[1]);
 		((EditText)findViewById(R.id.userName)).setText((String)a[2]);
-		((EditText)findViewById(R.id.passWord)).setText((String)a[3]);
+		if (a.length > 3)
+			((EditText)findViewById(R.id.passWord)).setText((String)a[3]);
 	}
 
 	public void populateServers(Context context) {
