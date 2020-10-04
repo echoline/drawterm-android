@@ -116,7 +116,7 @@ androidinit(void)
 	output = malloc(sizeof(ACaptureSessionOutput*) * Ncameras);
 	target = malloc(sizeof(ACameraOutputTarget*) * Ncameras);
 
-	sensorManager = ASensorManager_getInstanceForPackage("org.echoline.drawterm");
+	sensorManager = ASensorManager_getInstance();
 }
 
 static Chan*
@@ -227,7 +227,7 @@ androidopen(Chan *c, int omode)
 		ACaptureSessionOutputContainer_add(container[s], output[s]);
 		ACameraDevice_createCaptureSession(devices[s], container[s], &CSSCBs, &sessions[s]);
 		ACameraOutputTarget_create(windows[s], &target[s]);
-		ACameraDevice_createCaptureRequest(devices[s], TEMPLATE_STILL_CAPTURE, &requests[s]);
+		ACameraDevice_createCaptureRequest(devices[s], TEMPLATE_ZERO_SHUTTER_LAG, &requests[s]);
 		ACaptureRequest_addTarget(requests[s], target[s]);
 		ACameraCaptureSession_capture(sessions[s], &CBs, 1, &requests[s], &i);
 	}

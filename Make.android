@@ -5,20 +5,23 @@ OBJS=lib/arm64-v8a/libdrawterm.so lib/armeabi-v7a/libdrawterm.so lib/x86/libdraw
 
 all: drawterm.apk
 
+clean:
+	rm -f *.apk lib/*/*.so
+
 lib/arm64-v8a/libdrawterm.so:
-	CONF=android-arm64 make;
+	CONF=android-arm64 make -j5;
 	CONF=android-arm64 make clean;
 
 lib/armeabi-v7a/libdrawterm.so:
-	CONF=android-arm make;
+	CONF=android-arm make -j5;
 	CONF=android-arm make clean;
 
 lib/x86/libdrawterm.so:
-	CONF=android-386 make;
+	CONF=android-386 make -j5;
 	CONF=android-386 make clean;
 
 lib/x86_64/libdrawterm.so:
-	CONF=android-amd64 make;
+	CONF=android-amd64 make -j5;
 	CONF=android-amd64 make clean;
 
 drawterm.apk: drawterm-signed.apk

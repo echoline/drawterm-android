@@ -6,6 +6,7 @@
 #include <libc.h>
 #include <draw.h>
 #include <string.h>
+#include <keyboard.h>
 
 void absmousetrack(int, int, int, ulong);
 ulong ticks(void);
@@ -30,6 +31,22 @@ Java_org_echoline_drawterm_MainActivity_setObject(
     mainActivityObj = (*env)->NewGlobalRef(env, obj);
     jint rs = (*env)->GetJavaVM(env, &jvm);
     assert(rs == JNI_OK);
+}
+
+JNIEXPORT void JNICALL
+Java_org_echoline_drawterm_MainActivity_keyDown(
+        JNIEnv *env,
+        jobject obj,
+        jint c) {
+    kbdkey(c, 1);
+}
+
+JNIEXPORT void JNICALL
+Java_org_echoline_drawterm_MainActivity_keyUp(
+        JNIEnv *env,
+        jobject obj,
+        jint c) {
+    kbdkey(c, 0);
 }
 
 JNIEXPORT void JNICALL

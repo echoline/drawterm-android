@@ -20,6 +20,8 @@ import android.view.MenuItem;
 import android.view.WindowManager;
 import android.view.WindowMetrics;
 import android.view.Surface;
+import android.view.inputmethod.InputMethodManager;
+import android.view.KeyEvent;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
@@ -101,11 +103,20 @@ public class MainActivity extends Activity {
 
 				setContentView(R.layout.drawterm_main);
 
+				Button kbutton = (Button)findViewById(R.id.keyboardToggle);
+				kbutton.setOnClickListener(new View.OnClickListener() {
+					@Override
+					public void onClick(final View view) {
+						InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+						imm.toggleSoftInput(InputMethodManager.SHOW_IMPLICIT, 0);
+					}
+				});
+
 				int rid = res.getIdentifier("navigation_bar_height", "dimen", "android");
 				if (rid > 0) {
 					hp -= res.getDimensionPixelSize(rid);
 				}
-				LinearLayout ll = findViewById(R.id.mouseButtons);
+				LinearLayout ll = findViewById(R.id.dtButtons);
 				hp -= ll.getHeight();
 
 				int w = (int)(wp * (160.0/dm.xdpi));
@@ -157,6 +168,85 @@ public class MainActivity extends Activity {
 	}
 
 	@Override
+	public boolean dispatchKeyEvent(KeyEvent event)
+	{
+		int k = event.getUnicodeChar();
+		if (k == 0) {
+			k = event.getDisplayLabel();
+			if (k != 0)
+				k |= 0x20;
+		}
+
+		switch (event.getKeyCode()) {
+		case KeyEvent.KEYCODE_DEL:
+			k = 0x0008;
+			break;
+		case KeyEvent.KEYCODE_FORWARD_DEL:
+			k = 0x007F;
+			break;
+		case KeyEvent.KEYCODE_ESCAPE:
+			k = 0x001B;
+			break;
+		case KeyEvent.KEYCODE_MOVE_HOME:
+			k = 0xF00D;
+			break;
+		case KeyEvent.KEYCODE_MOVE_END:
+			k = 0xF018;
+			break;
+		case KeyEvent.KEYCODE_PAGE_UP:
+			k = 0xF00F;
+			break;
+		case KeyEvent.KEYCODE_PAGE_DOWN:
+			k = 0xF013;
+			break;
+		case KeyEvent.KEYCODE_INSERT:
+			k = 0xF014;
+			break;
+		case KeyEvent.KEYCODE_SYSRQ:
+			k = 0xF010;
+			break;
+		case KeyEvent.KEYCODE_DPAD_UP:
+			k = 0xF00E;
+			break;
+		case KeyEvent.KEYCODE_DPAD_LEFT:
+			k = 0xF011;
+			break;
+		case KeyEvent.KEYCODE_DPAD_RIGHT:
+			k = 0xF012;
+			break;
+		case KeyEvent.KEYCODE_DPAD_DOWN:
+			k = 0xF800;
+			break;
+		}
+
+		if (k == 0)
+			return true;
+
+		if (event.isCtrlPressed()) {
+			keyDown(0xF017);
+		}
+		if (event.isAltPressed()) {
+			keyDown(0xF015);
+		}
+
+		if (event.getAction() == KeyEvent.ACTION_DOWN) {
+			keyDown(k);
+		}
+		else if (event.getAction() == KeyEvent.ACTION_UP) {
+			keyUp(k);
+		}
+
+		if (event.isCtrlPressed()) {
+			keyUp(0xF017);
+		}
+		if (event.isAltPressed()) {
+			keyUp(0xF015);
+		}
+
+		return true;
+	}
+
+	@Override
 	public void onBackPressed()
 	{
 	}
@@ -188,4 +278,6 @@ public class MainActivity extends Activity {
 	public native void setDTSurface(Surface surface);
 	public native void setMouse(int[] args);
 	public native void setObject();
+	public native void keyDown(int c);
+	public native void keyUp(int c);
 }

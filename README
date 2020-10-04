@@ -20,18 +20,15 @@ To build on Mac OS X with Cocoa, run CONF=osx-cocoa make and "cp drawterm gui-co
 
 To build for Android, make sure Make.android* files are correct for your build and target systems, then run make -f Make.android
 
-On Android, there is no keyboard support in the app, the bitsy/keyboard on-screen keyboard must be used. From $home/lib/profile:
+USAGE
+-------
+On Android the five checkboxes at the top represent the three mouse buttons and mousewheel, determining which "buttons" are clicked. The "kb" button toggles the soft keyboard.
 
-	if(test -e /mnt/term/root/mnt/sdcard)
-		rio -s -k 'bitsy/keyboard -n' -i riostart
-	if not
-		rio -s -i riostart
-
-The five checkboxes at the top represent the three mouse buttons and mousewheel, determining which "buttons" are clicked.
 
 CAVEATS
 --------
 Be aware that right now on Android the login details are saved as a plaintext string if saved, and there is no secstore support.
+
 
 BINARIES
 ---------
