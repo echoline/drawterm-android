@@ -37,6 +37,7 @@ import java.util.Map;
 public class MainActivity extends Activity {
 	private Map<String, ?> map;
 	private MainActivity mainActivity;
+	private boolean dtrunning = false;
 
 	static {
 		System.loadLibrary("drawterm");
@@ -67,6 +68,59 @@ public class MainActivity extends Activity {
 			la.add(key);
 		}
 		ll.setAdapter(la);
+
+		dtrunning = false;
+	}
+
+	public void runDrawterm(String []args, String pass) {
+		Resources res = getResources();
+		DisplayMetrics dm = res.getDisplayMetrics();
+
+		int wp = dm.widthPixels;
+		int hp = dm.heightPixels;
+
+		setContentView(R.layout.drawterm_main);
+
+		Button kbutton = (Button)findViewById(R.id.keyboardToggle);
+		kbutton.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(final View view) {
+				InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+				imm.toggleSoftInput(InputMethodManager.SHOW_IMPLICIT, 0);
+			}
+		});
+
+		int rid = res.getIdentifier("navigation_bar_height", "dimen", "android");
+		if (rid > 0) {
+			hp -= res.getDimensionPixelSize(rid);
+		}
+		LinearLayout ll = findViewById(R.id.dtButtons);
+		hp -= ll.getHeight();
+
+		int w = (int)(wp * (160.0/dm.xdpi));
+		int h = (int)(hp * (160.0/dm.ydpi));
+		float ws = (float)wp/w;
+		float hs = (float)hp/h;
+		// only scale up
+		if (ws < 1) {
+			ws = 1;
+			w = wp;
+		}
+		if (hs < 1) {
+			hs = 1;
+			h = hp;
+		}
+
+		MySurfaceView mView = new MySurfaceView(mainActivity, w, h, ws, hs);
+		mView.getHolder().setFixedSize(w, h);
+
+		LinearLayout l = findViewById(R.id.dlayout);
+		l.addView(mView, 1, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
+
+		DrawTermThread t = new DrawTermThread(args, pass, mainActivity);
+		t.start();
+
+		dtrunning = true;
 	}
 
 	public void serverButtons() {
@@ -95,52 +149,8 @@ public class MainActivity extends Activity {
 				String user = ((EditText)findViewById(R.id.userName)).getText().toString();
 				String pass = ((EditText)findViewById(R.id.passWord)).getText().toString();
 
-				Resources res = getResources();
-				DisplayMetrics dm = res.getDisplayMetrics();
-
-				int wp = dm.widthPixels;
-				int hp = dm.heightPixels;
-
-				setContentView(R.layout.drawterm_main);
-
-				Button kbutton = (Button)findViewById(R.id.keyboardToggle);
-				kbutton.setOnClickListener(new View.OnClickListener() {
-					@Override
-					public void onClick(final View view) {
-						InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
-						imm.toggleSoftInput(InputMethodManager.SHOW_IMPLICIT, 0);
-					}
-				});
-
-				int rid = res.getIdentifier("navigation_bar_height", "dimen", "android");
-				if (rid > 0) {
-					hp -= res.getDimensionPixelSize(rid);
-				}
-				LinearLayout ll = findViewById(R.id.dtButtons);
-				hp -= ll.getHeight();
-
-				int w = (int)(wp * (160.0/dm.xdpi));
-				int h = (int)(hp * (160.0/dm.ydpi));
-				float ws = (float)wp/w;
-				float hs = (float)hp/h;
-				// only scale up
-				if (ws < 1) {
-					ws = 1;
-					w = wp;
-				}
-				if (hs < 1) {
-					hs = 1;
-					h = hp;
-				}
-
-				MySurfaceView mView = new MySurfaceView(mainActivity, w, h, ws, hs);
-				mView.getHolder().setFixedSize(w, h);
-
-				LinearLayout l = findViewById(R.id.dlayout);
-				l.addView(mView, 1, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
-
-				DrawTermThread t = new DrawTermThread(cpu, auth, user, pass, mainActivity);
-				t.start();
+				String args[] = {"drawterm", "-p", "-h", cpu, "-a", auth, "-u", user};
+				runDrawterm(args, pass);
 			}
 		});
 	}
@@ -170,10 +180,15 @@ public class MainActivity extends Activity {
 	@Override
 	public boolean dispatchKeyEvent(KeyEvent event)
 	{
+		if (!dtrunning) {
+			super.dispatchKeyEvent(event);
+			return false;
+		}
+
 		int k = event.getUnicodeChar();
 		if (k == 0) {
 			k = event.getDisplayLabel();
-			if (k != 0)
+			if (k >= 'A' && k <= 'Z')
 				k |= 0x20;
 		}
 
@@ -249,6 +264,8 @@ public class MainActivity extends Activity {
 	@Override
 	public void onBackPressed()
 	{
+		if (!dtrunning)
+			super.onBackPressed();
 	}
 
 	public void setClipBoard(String str) {

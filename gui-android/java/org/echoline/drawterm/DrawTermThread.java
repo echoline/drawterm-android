@@ -6,20 +6,19 @@ package org.echoline.drawterm;
 
 public class DrawTermThread extends Thread {
 	private MainActivity m;
-	private String c, a, u, p;
+	private String p;
+	private String []args;
 
-	public DrawTermThread(String c, String a, String u, String p, MainActivity m) {
-		this.c = c;
-		this.a = a;
-		this.u = u;
-		this.p = p;
+	public DrawTermThread(String []args, String p, MainActivity m) {
 		this.m = m;
+		this.p = p;
+		this.args = args;
 	}
 
 	@Override
 	public void run() {
-		String args[] = {"drawterm", "-p", "-h", c, "-a", a, "-u", u};
-		m.setPass(p);
+		if (p != null && !p.equals(""))
+			m.setPass(p);
 		m.dtmain(args);
 		m.runOnUiThread(new Runnable() {
 			@Override
