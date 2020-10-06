@@ -38,6 +38,7 @@ public class MainActivity extends Activity {
 	private Map<String, ?> map;
 	private MainActivity mainActivity;
 	private boolean dtrunning = false;
+	private DrawTermThread dthread;
 
 	static {
 		System.loadLibrary("drawterm");
@@ -70,6 +71,7 @@ public class MainActivity extends Activity {
 		}
 		ll.setAdapter(la);
 
+		setDTSurface(null);
 		dtrunning = false;
 	}
 
@@ -118,8 +120,8 @@ public class MainActivity extends Activity {
 		LinearLayout l = findViewById(R.id.dlayout);
 		l.addView(mView, 1, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
 
-		DrawTermThread t = new DrawTermThread(args, pass, mainActivity);
-		t.start();
+		dthread = new DrawTermThread(args, pass, mainActivity);
+		dthread.start();
 
 		dtrunning = true;
 	}
@@ -265,8 +267,15 @@ public class MainActivity extends Activity {
 	@Override
 	public void onBackPressed()
 	{
-		if (!dtrunning)
-			super.onBackPressed();
+	}
+
+	@Override
+	public void onDestroy()
+	{
+		setDTSurface(null);
+		dtrunning = false;
+		exitDT();
+		super.onDestroy();
 	}
 
 	public void setClipBoard(String str) {
@@ -298,4 +307,5 @@ public class MainActivity extends Activity {
 	public native void setObject();
 	public native void keyDown(int c);
 	public native void keyUp(int c);
+	public native void exitDT();
 }

@@ -140,8 +140,15 @@ Java_org_echoline_drawterm_MainActivity_setDTSurface(
 	ANativeWindow_setBuffersGeometry(window, screenWidth, screenHeight,
 		AHARDWAREBUFFER_FORMAT_R8G8B8X8_UNORM);
 	flushmemscreen(Rect(0, 0, screenWidth, screenHeight));
-    } else {
+    } else if (window != NULL) {
         ANativeWindow_release(window);
 	window = NULL;
     }
+}
+
+JNIEXPORT void JNICALL
+Java_org_echoline_drawterm_MainActivity_exitDT(
+	JNIEnv* jenv,
+	jobject obj) {
+    exit(0);
 }
