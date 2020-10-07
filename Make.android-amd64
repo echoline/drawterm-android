@@ -1,7 +1,7 @@
 # Android
 SDKPREFIX=$(HOME)/Android/Sdk
 NDKPREFIX=$(SDKPREFIX)/ndk/21.3.6528147/toolchains/llvm/prebuilt/linux-x86_64/bin
-JAVA_HOME=$(HOME)/Downloads/android-studio/jre
+JAVA_HOME=/usr
 
 PTHREAD=-pthread
 AR=$(NDKPREFIX)/x86_64-linux-android-ar

@@ -18,7 +18,6 @@ import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.WindowManager;
-import android.view.WindowMetrics;
 import android.view.Surface;
 import android.view.inputmethod.InputMethodManager;
 import android.view.KeyEvent;
@@ -59,7 +58,7 @@ public class MainActivity extends Activity {
 	}
 
 	public void populateServers(Context context) {
-		ListView ll = findViewById(R.id.servers);
+		ListView ll = (ListView)findViewById(R.id.servers);
 		ArrayAdapter<String> la = new ArrayAdapter<String>(this, R.layout.item_main);
 		SharedPreferences settings = getSharedPreferences("DrawtermPrefs", 0);
 		map = (Map<String, ?>)settings.getAll();
@@ -97,7 +96,7 @@ public class MainActivity extends Activity {
 		if (rid > 0) {
 			hp -= res.getDimensionPixelSize(rid);
 		}
-		LinearLayout ll = findViewById(R.id.dtButtons);
+		LinearLayout ll = (LinearLayout)findViewById(R.id.dtButtons);
 		hp -= ll.getHeight();
 
 		int w = (int)(wp * (160.0/dm.xdpi));
@@ -117,7 +116,7 @@ public class MainActivity extends Activity {
 		MySurfaceView mView = new MySurfaceView(mainActivity, w, h, ws, hs);
 		mView.getHolder().setFixedSize(w, h);
 
-		LinearLayout l = findViewById(R.id.dlayout);
+		LinearLayout l = (LinearLayout)findViewById(R.id.dlayout);
 		l.addView(mView, 1, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
 
 		dthread = new DrawTermThread(args, pass, mainActivity);
@@ -163,7 +162,7 @@ public class MainActivity extends Activity {
 		super.onCreate(savedInstanceState);
 		setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 		getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-		File dir = Environment.getStorageDirectory();
+		File dir = Environment.getExternalStorageDirectory();
 
 		mainActivity = this;
 		setObject();

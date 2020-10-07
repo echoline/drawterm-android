@@ -13,11 +13,11 @@ $(LIB): $(OFILES)
 	$(RANLIB) $(LIB)
 
 gen/org/echoline/drawterm/R.java: $(shell find res/ -type f)
-	$(SDKPREFIX)/build-tools/30.0.2/aapt package -f -m -M AndroidManifest.xml -I $(SDKPREFIX)/platforms/android-30/android.jar -S res/ -J gen
+	$(SDKPREFIX)/build-tools/30.0.2/aapt package -f -m -M AndroidManifest.xml -I $(SDKPREFIX)/platforms/android-24/android.jar -S res/ -J gen
 
 bin/classes.dex: obj/org/echoline/drawterm/MainActivity.class obj/org/echoline/drawterm/DrawTermThread.class obj/org/echoline/drawterm/MySurfaceView.class
 	$(SDKPREFIX)/build-tools/30.0.2/dx --dex --verbose --output=$@ obj/
 
 obj/org/echoline/drawterm/%.class: java/org/echoline/drawterm/%.java
-	$(JAVA_HOME)/bin/javac -d obj/ -classpath $(SDKPREFIX)/platforms/android-30/android.jar -sourcepath java java/org/echoline/drawterm/$*.java gen/org/echoline/drawterm/R.java
+	$(JAVA_HOME)/bin/javac -d obj/ -classpath $(SDKPREFIX)/platforms/android-24/android.jar -sourcepath java java/org/echoline/drawterm/$*.java gen/org/echoline/drawterm/R.java
 
