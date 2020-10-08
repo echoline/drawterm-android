@@ -35,4 +35,4 @@ drawterm-unsigned.apk: $(OBJS)
 	$(SDKPREFIX)/build-tools/30.0.2/aapt add $@ $(OBJS)
 
 drawterm.keystore:
-	$(JAVA_HOME)/bin/keytool -genkeypair -validity 1000 -dname "CN=some company,O=Android,C=JPN" -keystore $@ -storepass glendarocks -keypass glendarocks -alias drawtermKey -keyalg RSA -v
+	$(JAVA_HOME)/bin/keytool -genkeypair -validity 1000 -dname "CN=9front,O=Android,C=US" -keystore $@ -storepass glendarocks -keypass glendarocks -alias drawtermKey -keyalg RSA -v

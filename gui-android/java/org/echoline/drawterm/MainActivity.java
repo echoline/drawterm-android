@@ -10,6 +10,9 @@ import android.os.Environment;
 
 import android.app.Activity;
 
+import android.app.Notification;
+import android.app.NotificationManager;
+
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Display;
@@ -38,9 +41,22 @@ public class MainActivity extends Activity {
 	private MainActivity mainActivity;
 	private boolean dtrunning = false;
 	private DrawTermThread dthread;
+	private int notificationId;
 
 	static {
 		System.loadLibrary("drawterm");
+	}
+
+	public void showNotification(String text) {
+		Notification.Builder builder = new Notification.Builder(this)
+			.setDefaults(Notification.DEFAULT_SOUND)
+			.setSmallIcon(R.drawable.ic_launcher_background)
+			.setContentText(text)
+			.setStyle(new Notification.BigTextStyle().bigText(text))
+			.setPriority(Notification.PRIORITY_DEFAULT);
+
+		((NotificationManager)getSystemService(Context.NOTIFICATION_SERVICE)).notify(notificationId, builder.build());
+		notificationId++;
 	}
 
 	public void serverView(View v) {
@@ -162,7 +178,6 @@ public class MainActivity extends Activity {
 		super.onCreate(savedInstanceState);
 		setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 		getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-		File dir = Environment.getExternalStorageDirectory();
 
 		mainActivity = this;
 		setObject();

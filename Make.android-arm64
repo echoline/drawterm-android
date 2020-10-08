@@ -7,6 +7,7 @@ PTHREAD=-pthread
 AR=$(NDKPREFIX)/aarch64-linux-android-ar
 AS=$(NDKPREFIX)/aarch64-linux-android-as
 RANLIB=$(NDKPREFIX)/aarch64-linux-android-ranlib
+STRIP=$(NDKPREFIX)/aarch64-linux-android-strip
 CC=$(NDKPREFIX)/aarch64-linux-android24-clang
 CFLAGS=-Wall -Wno-missing-braces -ggdb -I$(ROOT) -I$(ROOT)/include -I$(ROOT)/kern -c -Dmain=dt_main -fPIC
 O=o

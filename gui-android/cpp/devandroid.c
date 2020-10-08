@@ -12,12 +12,15 @@
 #include <android/log.h>
 #include <android/sensor.h>
 
+void show_notification(char *buf);
+
 enum
 {
 	Qdir		= 0,
 	Qcam		= 1,
 	Qaccel		= 2,
 	Qcompass	= 4,
+	Qnotification	= 6,
 };
 #define QID(p, c, y) 	(((p)<<16) | ((c)<<4) | (y))
 
@@ -158,6 +161,12 @@ androidgen(Chan *c, char *n, Dirtab *d, int nd, int s, Dir *dp)
 		sprintf(up->genbuf, "compass");
 		mkqid(&q, Qcompass, 0, QTFILE);
 		devdir(c, q, up->genbuf, 0, eve, 0444, dp);
+		return 1;
+	}
+	if (s == (Ncameras+2)) {
+		sprintf(up->genbuf, "notification");
+		mkqid(&q, Qnotification, 0, QTFILE);
+		devdir(c, q, up->genbuf, 0, eve, 0222, dp);
 		return 1;
 	}
 	return -1;
@@ -351,7 +360,17 @@ androidread(Chan *c, void *v, long n, vlong off)
 static long
 androidwrite(Chan *c, void *vp, long n, vlong off)
 {
+	char *a = vp;
+	char *str;
+
 	switch((ulong)c->qid.path) {
+		case Qnotification:
+			str = malloc(n+1);
+			memcpy(str, a, n);
+			str[n] = '\0';
+			show_notification(str);
+			free(str);
+			return n;
 		default:
 			error(Eperm);
 			break;

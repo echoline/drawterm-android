@@ -58,6 +58,23 @@ clipwrite(char *buf)
 }
 
 void
+show_notification(char *buf)
+{
+	JNIEnv *env;
+	jint rs = (*jvm)->AttachCurrentThread(jvm, &env, NULL);
+	if(rs != JNI_OK) {
+		__android_log_print(ANDROID_LOG_WARN, "drawterm", "GetEnv returned error: %d", rs);
+		return;
+	}
+	jclass clazz = (*env)->GetObjectClass(env, mainActivityObj);
+	jmethodID methodID = (*env)->GetMethodID(env, clazz, "showNotification", "(Ljava/lang/String;)V");
+        jstring str = (*env)->NewStringUTF(env, buf);
+	(*env)->CallVoidMethod(env, mainActivityObj, methodID, str);
+	(*jvm)->DetachCurrentThread(jvm);
+	return;
+}
+
+void
 setcolor(ulong i, ulong r, ulong g, ulong b)
 {
 	return;

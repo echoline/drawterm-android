@@ -7,6 +7,7 @@ PTHREAD=-pthread
 AR=$(NDKPREFIX)/arm-linux-androideabi-ar
 AS=$(NDKPREFIX)/arm-linux-androideabi-as
 RANLIB=$(NDKPREFIX)/arm-linux-androideabi-ranlib
+STRIP=$(NDKPREFIX)/arm-linux-androideabi-strip
 CC=$(NDKPREFIX)/armv7a-linux-androideabi24-clang
 CFLAGS=-Wall -Wno-missing-braces -ggdb -I$(ROOT) -I$(ROOT)/include -I$(ROOT)/kern -c -Dmain=dt_main -fPIC
 O=o

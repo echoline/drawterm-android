@@ -31,6 +31,7 @@ LIBS=$(LIBS1) $(LIBS1) $(LIBS1) libmachdep.a
 default: $(TARG)
 $(TARG): $(OFILES) $(LIBS)
 	$(CC) $(LDFLAGS) -o $(TARG) $(OFILES) $(LIBS) $(LDADD)
+	$(STRIP) $(TARG)
 
 %.$O: %.c
 	$(CC) $(CFLAGS) $*.c
