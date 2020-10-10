@@ -23,6 +23,8 @@ ANativeWindow *window = NULL;
 jobject mainActivityObj;
 JavaVM *jvm;
 void flushmemscreen(Rectangle r);
+extern uchar *cambuf;
+extern int camlen;
 
 JNIEXPORT void JNICALL
 Java_org_echoline_drawterm_MainActivity_setObject(
@@ -152,3 +154,17 @@ Java_org_echoline_drawterm_MainActivity_exitDT(
 	jobject obj) {
     exit(0);
 }
+
+JNIEXPORT void JNICALL
+Java_org_echoline_drawterm_MainActivity_sendPicture(
+	JNIEnv* env,
+	jobject obj,
+	jbyteArray array) {
+    jint len = (*env)->GetArrayLength(env, array);
+    jbyte *bytes = (*env)->GetByteArrayElements(env, array, NULL);
+    camlen = len;
+    cambuf = malloc(camlen);
+    memcpy(cambuf, bytes, camlen);
+    (*env)->ReleaseByteArrayElements(env, array, bytes, 0);
+}
+

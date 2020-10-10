@@ -1,6 +1,6 @@
 # Android
 SDKPREFIX=$(HOME)/Android/Sdk
-NDKPREFIX=$(SDKPREFIX)/ndk/21.3.6528147/toolchains/llvm/prebuilt/linux-x86_64/bin
+NDKPREFIX=$(SDKPREFIX)/ndk-bundle/toolchains/llvm/prebuilt/linux-x86_64/bin
 JAVA_HOME=/usr
 
 PTHREAD=-pthread
@@ -8,30 +8,17 @@ AR=$(NDKPREFIX)/i686-linux-android-ar
 AS=$(NDKPREFIX)/i686-linux-android-as
 RANLIB=$(NDKPREFIX)/i686-linux-android-ranlib
 STRIP=$(NDKPREFIX)/i686-linux-android-strip
-CC=$(NDKPREFIX)/i686-linux-android24-clang
+CC=$(NDKPREFIX)/i686-linux-android21-clang
 CFLAGS=-Wall -Wno-missing-braces -ggdb -I$(ROOT) -I$(ROOT)/include -I$(ROOT)/kern -c -Dmain=dt_main -fPIC
 O=o
 OS=posix
 GUI=android
-LDADD=-ggdb -lm -shared -llog -landroid -lcamera2ndk -lmediandk
+LDADD=-ggdb -lm -shared -llog -landroid
 LDFLAGS=$(PTHREAD)
 TARG=lib/x86/libdrawterm.so
 AUDIO=none
 
 all: default
-
-drawterm.apk: drawterm-signed.apk
-	$(SDKPREFIX)/build-tools/30.0.2/zipalign -v -f 4 $< $@
-
-drawterm-signed.apk: drawterm-unsigned.apk drawterm.keystore
-	$(JAVA_HOME)/bin/jarsigner -verbose -keystore ./drawterm.keystore -storepass glendarocks -keypass glendarocks -signedjar $@ $< drawtermKey
-
-drawterm-unsigned.apk: lib/x86/libdrawterm.so
-	$(SDKPREFIX)/build-tools/30.0.2/aapt package -v -f -M gui-android/AndroidManifest.xml -S gui-android/res -I $(SDKPREFIX)/platforms/android-30/android.jar -F $@ gui-android/bin
-	$(SDKPREFIX)/build-tools/30.0.2/aapt add $@ lib/x86/libdrawterm.so
-
-drawterm.keystore:
-	$(JAVA_HOME)/bin/keytool -genkeypair -validity 1000 -dname "CN=some company,O=Android,C=JPN" -keystore $@ -storepass glendarocks -keypass glendarocks -alias drawtermKey -keyalg RSA -v
 
 libmachdep.a:
 	arch=386; \

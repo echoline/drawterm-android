@@ -31,7 +31,7 @@ drawterm-signed.apk: drawterm-unsigned.apk drawterm.keystore
 	$(JAVA_HOME)/bin/jarsigner -verbose -keystore ./drawterm.keystore -storepass glendarocks -keypass glendarocks -signedjar $@ $< drawtermKey
 
 drawterm-unsigned.apk: $(OBJS)
-	$(SDKPREFIX)/build-tools/30.0.2/aapt package -v -f -M gui-android/AndroidManifest.xml -S gui-android/res -I $(SDKPREFIX)/platforms/android-24/android.jar -F $@ gui-android/bin
+	$(SDKPREFIX)/build-tools/30.0.2/aapt package -v -f -M gui-android/AndroidManifest.xml -S gui-android/res -I $(SDKPREFIX)/platforms/android-21/android.jar -F $@ gui-android/bin
 	$(SDKPREFIX)/build-tools/30.0.2/aapt add $@ $(OBJS)
 
 drawterm.keystore:

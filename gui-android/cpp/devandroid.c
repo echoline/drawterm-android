@@ -4,15 +4,19 @@
 #include	"fns.h"
 #include	"error.h"
 
-#include <stdbool.h>
-
-#include <camera/NdkCameraDevice.h>
-#include <camera/NdkCameraManager.h>
-#include <media/NdkImageReader.h>
 #include <android/log.h>
 #include <android/sensor.h>
 
 void show_notification(char *buf);
+void take_picture(int id);
+int num_cameras();
+
+int Ncameras = 0;
+
+uchar *cambuf = nil;
+int camlen;
+
+ASensorManager *sensorManager = NULL;
 
 enum
 {
@@ -24,102 +28,14 @@ enum
 };
 #define QID(p, c, y) 	(((p)<<16) | ((c)<<4) | (y))
 
-typedef struct {
-	uchar *data;
-	int len;
-} CAux;
-
-static int Ncameras = 0;
-static ACameraDevice **devices = NULL;
-static AImageReader **readers = NULL;
-static ANativeWindow **windows = NULL;
-static ACameraCaptureSession **sessions = NULL;
-static ACaptureRequest **requests = NULL;
-static AImage **images = NULL;
-static CAux **datas = NULL;
-static ACameraManager *manager;
-static ACaptureSessionOutputContainer **container = NULL;
-static ACaptureSessionOutput **output = NULL;
-static ACameraOutputTarget **target = NULL;
-static ACameraIdList *cameras = NULL;
-static ASensorManager *sensorManager = NULL;
-
 static void androidinit(void);
-
-static void
-reinitialize()
-{
-	ACameraManager_deleteCameraIdList(cameras);
-	ACameraManager_delete(manager);
-
-	free(devices);
-	free(readers);
-	free(windows);
-	free(sessions);
-	free(requests);
-	free(images);
-	free(datas);
-	free(container);
-	free(output);
-	free(target);
-
-	androidinit();
-}
-
-static void
-onDisconnected(void *context, ACameraDevice *device1)
-{
-}
-
-static void
-onError(void *context, ACameraDevice *device1, int error)
-{
-	reinitialize();
-}
-
-static void
-onImageAvailable(void *context, AImageReader *reader)
-{
-	int i = (int)context;
-	uchar *data;
-	int len;
-	CAux *aux;
-
-	__android_log_print(ANDROID_LOG_VERBOSE, "drawterm", "onImageAvailable");
-	if (images[i] != NULL)
-		AImage_delete(images[i]);
-	AImageReader_acquireLatestImage(reader, &images[i]);
-	aux = malloc(sizeof(CAux));
-	AImage_getPlaneData(images[i], 0, &data, &len);
-	aux->data = malloc(len);
-	memcpy(aux->data, data, len);
-	aux->len = len;
-	if (datas[i] != NULL) {
-		free(datas[i]->data);
-		free(datas[i]);
-	}
-	datas[i] = aux;
-}
-
 
 static void
 androidinit(void)
 {
-	manager = ACameraManager_create();
-	ACameraManager_getCameraIdList(manager, &cameras);
-	Ncameras = cameras->numCameras;
-	devices = malloc(sizeof(ACameraDevice*) * Ncameras);
-	readers = malloc(sizeof(AImageReader*) * Ncameras);
-	windows = malloc(sizeof(ANativeWindow*) * Ncameras);
-	sessions = malloc(sizeof(ACameraCaptureSession*) * Ncameras);
-	requests = malloc(sizeof(ACaptureRequest*) * Ncameras);
-	images = malloc(sizeof(AImage*) * Ncameras);
-	datas = malloc(sizeof(CAux*) * Ncameras);
-	container = malloc(sizeof(ACaptureSessionOutputContainer*) * Ncameras);
-	output = malloc(sizeof(ACaptureSessionOutput*) * Ncameras);
-	target = malloc(sizeof(ACameraOutputTarget*) * Ncameras);
-
 	sensorManager = ASensorManager_getInstance();
+
+	Ncameras = num_cameras();
 }
 
 static Chan*
@@ -184,19 +100,6 @@ androidstat(Chan *c, uchar *db, int n)
 	return devstat(c, db, n, 0, 0, androidgen);
 }
 
-static void
-onCaptureCompleted(void *context, ACameraCaptureSession *session,
-				   ACaptureRequest *request, const ACameraMetadata *result)
-{
-}
-
-static void
-onCaptureFailed(void *context, ACameraCaptureSession *session,
-				ACaptureRequest *request, ACameraCaptureFailure *failure)
-{
-	reinitialize();
-}
-
 static Chan*
 androidopen(Chan *c, int omode)
 {
@@ -205,40 +108,9 @@ androidopen(Chan *c, int omode)
 
 	c = devopen(c, omode, 0, 0, androidgen);
 
-	ACameraCaptureSession_captureCallbacks CBs = {
-		.context = (void*)c,
-		.onCaptureCompleted = onCaptureCompleted,
-		.onCaptureFailed = onCaptureFailed,
-	};
-	ACameraDevice_StateCallbacks SCBs = {
-		.context = NULL,
-		.onDisconnected = onDisconnected,
-		.onError = onError,
-	};
-	ACameraCaptureSession_stateCallbacks CSSCBs = {
-		.context = NULL,
-	};
-	AImageReader_ImageListener ALs = {
-		.onImageAvailable = onImageAvailable,
-	};
-
 	if (c->qid.path & Qcam) {
 		s = c->qid.path >> 16;
-		c->aux = (void*)s;
-		images[s] = NULL;
-		ACameraManager_openCamera(manager, cameras->cameraIds[s], &SCBs, &devices[s]);
-		AImageReader_new(640, 480, AIMAGE_FORMAT_JPEG, 4, &readers[s]);
-		ALs.context = (void*)s;
-		AImageReader_setImageListener(readers[s], &ALs);
-		AImageReader_getWindow(readers[s], &windows[s]);
-		ACaptureSessionOutput_create(windows[s], &output[s]);
-		ACaptureSessionOutputContainer_create(&container[s]);
-		ACaptureSessionOutputContainer_add(container[s], output[s]);
-		ACameraDevice_createCaptureSession(devices[s], container[s], &CSSCBs, &sessions[s]);
-		ACameraOutputTarget_create(windows[s], &target[s]);
-		ACameraDevice_createCaptureRequest(devices[s], TEMPLATE_ZERO_SHUTTER_LAG, &requests[s]);
-		ACaptureRequest_addTarget(requests[s], target[s]);
-		ACameraCaptureSession_capture(sessions[s], &CBs, 1, &requests[s], &i);
+		take_picture(s);
 	}
 	c->mode = openmode(omode);
 	c->flag |= COPEN;
@@ -251,27 +123,9 @@ androidopen(Chan *c, int omode)
 static void
 androidclose(Chan *c)
 {
-	int i;
-	if (c->qid.path & Qcam) {
-		i = (int)c->aux;
-		if (datas[i] == NULL)
-			return;
-		CAux *aux = datas[i];
-		free(aux->data);
-		free(aux);
-		datas[i] = NULL;
-		ACaptureSessionOutputContainer_free(container[i]);
-		ACaptureSessionOutput_free(output[i]);
-		ACameraCaptureSession_close(sessions[i]);
-		ACameraOutputTarget_free(target[i]);
-		ACaptureRequest_free(requests[i]);
-		AImageReader_delete(readers[i]);
-		AImage_delete(images[i]);
-		if (datas[i] != NULL) {
-			free(datas[i]->data);
-			free(datas[i]);
-		}
-		ACameraDevice_close(devices[i]);
+	if (c->qid.path & Qcam && cambuf != nil) {
+		free(cambuf);
+		cambuf = nil;
 	}
 }
 
@@ -279,7 +133,6 @@ static long
 androidread(Chan *c, void *v, long n, vlong off)
 {
 	char *a = v;
-	CAux *aux;
 	long l;
 	int i = c->qid.path >> 16;
 	const ASensor *sensor;
@@ -292,19 +145,16 @@ androidread(Chan *c, void *v, long n, vlong off)
 			return -1;
 
 		case Qcam:
-			while (datas[i] == NULL)
+			while(cambuf == nil)
 				usleep(10 * 1000);
-			aux = datas[i];
-			l = aux->len - off;
-			if (l == 0) {
-				free(aux->data);
-				free(aux);
-				datas[i] = NULL;
-				return l;
-			}
+
+			l = camlen - off;
 			if (l > n)
 				l = n;
-			memcpy(a, &aux->data[off], l);
+
+			if (l > 0)
+				memcpy(a, cambuf + off, l);
+
 			return l;
 		case Qaccel:
 			queue = ASensorManager_createEventQueue(sensorManager, ALooper_prepare(ALOOPER_PREPARE_ALLOW_NON_CALLBACKS), 1, NULL, NULL);

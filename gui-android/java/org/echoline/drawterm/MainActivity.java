@@ -32,9 +32,24 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.content.ClipData;
 import android.content.ClipboardManager;
+import android.hardware.camera2.CameraManager;
+import android.hardware.camera2.CameraAccessException;
+import android.hardware.camera2.CameraDevice;
+import android.hardware.camera2.CaptureRequest;
+import android.hardware.camera2.CameraMetadata;
+import android.hardware.camera2.CameraCaptureSession;
+import android.hardware.camera2.TotalCaptureResult;
+import android.media.Image;
+import android.media.ImageReader;
+import android.graphics.ImageFormat;
+import android.os.Handler;
+import android.os.HandlerThread;
 
 import java.io.File;
 import java.util.Map;
+import java.nio.ByteBuffer;
+import java.util.List;
+import java.util.ArrayList;
 
 public class MainActivity extends Activity {
 	private Map<String, ?> map;
@@ -42,6 +57,7 @@ public class MainActivity extends Activity {
 	private boolean dtrunning = false;
 	private DrawTermThread dthread;
 	private int notificationId;
+	private CameraDevice cameraDevice = null;
 
 	static {
 		System.loadLibrary("drawterm");
@@ -50,13 +66,94 @@ public class MainActivity extends Activity {
 	public void showNotification(String text) {
 		Notification.Builder builder = new Notification.Builder(this)
 			.setDefaults(Notification.DEFAULT_SOUND)
-			.setSmallIcon(R.drawable.ic_launcher_background)
+			.setSmallIcon(R.drawable.ic_small)
 			.setContentText(text)
 			.setStyle(new Notification.BigTextStyle().bigText(text))
 			.setPriority(Notification.PRIORITY_DEFAULT);
 
 		((NotificationManager)getSystemService(Context.NOTIFICATION_SERVICE)).notify(notificationId, builder.build());
 		notificationId++;
+	}
+
+	public int numCameras() {
+		try {
+			return ((CameraManager)getSystemService(Context.CAMERA_SERVICE)).getCameraIdList().length;
+		} catch (CameraAccessException e) {
+			Log.w("drawterm", e.toString());
+			return 0;
+		}
+	}
+
+	public void takePicture(int id) {
+		try {
+			HandlerThread mBackgroundThread = new HandlerThread("Camera Background");
+			mBackgroundThread.start();
+			Handler mBackgroundHandler = new Handler(mBackgroundThread.getLooper());
+			CameraManager manager = (CameraManager)getSystemService(Context.CAMERA_SERVICE);
+			String []cameraIdList = manager.getCameraIdList();
+			manager.openCamera(cameraIdList[id], new CameraDevice.StateCallback() {
+				public void onOpened(CameraDevice device) {
+					cameraDevice = device;
+				}
+				public void onDisconnected(CameraDevice device) {
+					if (cameraDevice != null)
+						cameraDevice.close();
+					cameraDevice = null;
+				}
+				public void onError(CameraDevice device, int error) {
+					if (cameraDevice != null)
+						cameraDevice.close();
+					cameraDevice = null;
+				}
+			}, mBackgroundHandler);
+			ImageReader reader = ImageReader.newInstance(640, 480, ImageFormat.JPEG, 1);
+			CaptureRequest.Builder captureBuilder = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_ZERO_SHUTTER_LAG);
+			captureBuilder.addTarget(reader.getSurface());
+			captureBuilder.set(CaptureRequest.CONTROL_MODE, CameraMetadata.CONTROL_MODE_AUTO);
+//			captureBuilder.set(CaptureRequest.CONTROL_AWB_MODE, CameraMetadata.CONTROL_AWB_MODE_AUTO);
+			captureBuilder.set(CaptureRequest.CONTROL_AE_MODE, CameraMetadata.CONTROL_AE_MODE_ON);
+			captureBuilder.set(CaptureRequest.COLOR_CORRECTION_MODE, CameraMetadata.COLOR_CORRECTION_MODE_HIGH_QUALITY);
+//			captureBuilder.set(CaptureRequest.JPEG_ORIENTATION, Surface.ROTATION_270);
+			reader.setOnImageAvailableListener(new ImageReader.OnImageAvailableListener() {
+				 public void onImageAvailable(ImageReader reader) {
+					Image image = null;
+					try {
+						image = reader.acquireLatestImage();
+						ByteBuffer buffer = image.getPlanes()[0].getBuffer();
+						byte[] bytes = new byte[buffer.capacity()];
+						buffer.get(bytes);
+						sendPicture(bytes);
+						mBackgroundThread.quitSafely();
+						mBackgroundThread.join();
+					} catch (Exception e) {
+						Log.w("drawterm", e.toString());
+					} finally {
+						if (image != null) {
+							image.close();
+						}
+					}
+				 }
+			}, mBackgroundHandler);
+			List<Surface> outputSurfaces = new ArrayList<Surface>(1);
+			outputSurfaces.add(reader.getSurface());
+			cameraDevice.createCaptureSession(outputSurfaces, new CameraCaptureSession.StateCallback() {
+				public void onConfigured(CameraCaptureSession session) {
+					try {
+						session.capture(captureBuilder.build(), new CameraCaptureSession.CaptureCallback() {
+							public void onCaptureCompleted(CameraCaptureSession session, CaptureRequest request, TotalCaptureResult result) {
+								super.onCaptureCompleted(session, request, result);
+							}
+						}, mBackgroundHandler);
+					} catch (CameraAccessException e) {
+						e.printStackTrace();
+					}
+				}
+				public void onConfigureFailed(CameraCaptureSession session) {
+				}
+			}, mBackgroundHandler);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 	public void serverView(View v) {
@@ -322,4 +419,5 @@ public class MainActivity extends Activity {
 	public native void keyDown(int c);
 	public native void keyUp(int c);
 	public native void exitDT();
+	public native void sendPicture(byte[] array);
 }

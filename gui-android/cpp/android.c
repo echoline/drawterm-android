@@ -63,13 +63,45 @@ show_notification(char *buf)
 	JNIEnv *env;
 	jint rs = (*jvm)->AttachCurrentThread(jvm, &env, NULL);
 	if(rs != JNI_OK) {
-		__android_log_print(ANDROID_LOG_WARN, "drawterm", "GetEnv returned error: %d", rs);
+		__android_log_print(ANDROID_LOG_WARN, "drawterm", "AttachCurrentThread returned error: %d", rs);
 		return;
 	}
 	jclass clazz = (*env)->GetObjectClass(env, mainActivityObj);
 	jmethodID methodID = (*env)->GetMethodID(env, clazz, "showNotification", "(Ljava/lang/String;)V");
         jstring str = (*env)->NewStringUTF(env, buf);
 	(*env)->CallVoidMethod(env, mainActivityObj, methodID, str);
+	(*jvm)->DetachCurrentThread(jvm);
+	return;
+}
+
+int
+num_cameras()
+{
+	JNIEnv *env;
+	int n;
+	jint rs = (*jvm)->GetEnv(jvm, (void**)&env, JNI_VERSION_1_6);
+	if(rs != JNI_OK) {
+		__android_log_print(ANDROID_LOG_WARN, "drawterm", "GetEnv returned error: %d", rs);
+		return 0;
+	}
+	jclass clazz = (*env)->GetObjectClass(env, mainActivityObj);
+	jmethodID methodID = (*env)->GetMethodID(env, clazz, "numCameras", "()I");
+	n = (*env)->CallIntMethod(env, mainActivityObj, methodID);
+	return n;
+}
+
+void
+take_picture(int id)
+{
+	JNIEnv *env;
+	jint rs = (*jvm)->AttachCurrentThread(jvm, &env, NULL);
+	if(rs != JNI_OK) {
+		__android_log_print(ANDROID_LOG_WARN, "drawterm", "AttachCurrentThread returned error: %d", rs);
+		return;
+	}
+	jclass clazz = (*env)->GetObjectClass(env, mainActivityObj);
+	jmethodID methodID = (*env)->GetMethodID(env, clazz, "takePicture", "(I)V");
+	(*env)->CallVoidMethod(env, mainActivityObj, methodID, id);
 	(*jvm)->DetachCurrentThread(jvm);
 	return;
 }

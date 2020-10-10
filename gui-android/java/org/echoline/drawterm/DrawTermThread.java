@@ -23,6 +23,7 @@ public class DrawTermThread extends Thread {
 		m.runOnUiThread(new Runnable() {
 			@Override
 			public void run() {
+				m.exitDT();
 				m.setContentView(R.layout.server_main);
 				m.populateServers(m);
 			}
