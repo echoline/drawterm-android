@@ -104,7 +104,6 @@ static Chan*
 androidopen(Chan *c, int omode)
 {
 	p9_uvlong s;
-	int i;
 
 	c = devopen(c, omode, 0, 0, androidgen);
 
@@ -134,7 +133,6 @@ androidread(Chan *c, void *v, long n, vlong off)
 {
 	char *a = v;
 	long l;
-	int i = c->qid.path >> 16;
 	const ASensor *sensor;
 	ASensorEventQueue *queue = NULL;
 	ASensorEvent data;
@@ -160,7 +158,7 @@ androidread(Chan *c, void *v, long n, vlong off)
 			queue = ASensorManager_createEventQueue(sensorManager, ALooper_prepare(ALOOPER_PREPARE_ALLOW_NON_CALLBACKS), 1, NULL, NULL);
 			if (queue == NULL)
 				return 0;
-			sensor = ASensorManager_getDefaultSensor(sensorManager, ASENSOR_TYPE_ACCELEROMETER_UNCALIBRATED);
+			sensor = ASensorManager_getDefaultSensor(sensorManager, ASENSOR_TYPE_ACCELEROMETER);
 			if (sensor == NULL) {
 				ASensorManager_destroyEventQueue(sensorManager, queue);
 				return 0;
@@ -173,7 +171,7 @@ androidread(Chan *c, void *v, long n, vlong off)
 			l = 0;
 			if (ALooper_pollAll(1000, NULL, NULL, NULL) == 1) {
 				if (ASensorEventQueue_getEvents(queue, &data, 1)) {
-					l = snprint(a, n, "%11f %11f %11f\n", data.acceleration.x, data.acceleration.y, data.acceleration.z);
+					l = snprint(a, n, "%11f %11f %11f\n", data.vector.x, data.vector.y, data.vector.z);
 				}
 			}
 			ASensorEventQueue_disableSensor(queue, sensor);
@@ -196,7 +194,7 @@ androidread(Chan *c, void *v, long n, vlong off)
 			l = 0;
 			if (ALooper_pollAll(1000, NULL, NULL, NULL) == 1) {
 				if (ASensorEventQueue_getEvents(queue, &data, 1)) {
-					l = snprint(a, n, "%11f %11f %11f\n", data.magnetic.x, data.magnetic.y, data.magnetic.z);
+					l = snprint(a, n, "%11f %11f %11f\n", data.vector.x, data.vector.y, data.vector.z);
 				}
 			}
 			ASensorEventQueue_disableSensor(queue, sensor);

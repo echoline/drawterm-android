@@ -5,3 +5,4 @@
     android:textSize="16sp"
     android:onClick="serverView">
 </TextView>
+

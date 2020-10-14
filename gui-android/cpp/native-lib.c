@@ -2,8 +2,11 @@
 #include <android/native_window.h>
 #include <android/native_window_jni.h>
 #include <android/log.h>
-#include <u.h>
-#include <libc.h>
+#include "u.h"
+#include "lib.h"
+#include "dat.h"
+#include "fns.h"
+#include "error.h"
 #include <draw.h>
 #include <string.h>
 #include <keyboard.h>
