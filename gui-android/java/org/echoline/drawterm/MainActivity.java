@@ -301,8 +301,7 @@ public class MainActivity extends Activity {
 	public boolean dispatchKeyEvent(KeyEvent event)
 	{
 		if (!dtrunning) {
-			super.dispatchKeyEvent(event);
-			return false;
+			return super.dispatchKeyEvent(event);
 		}
 
 		int k = event.getUnicodeChar();
@@ -311,8 +310,17 @@ public class MainActivity extends Activity {
 			if (k >= 'A' && k <= 'Z')
 				k |= 0x20;
 		}
+		String chars = event.getCharacters();
+		if (k == 0 && chars != null) {
+			for (int i = 0; i < chars.length(); i++) {
+				k = chars.codePointAt(i);
+				keyDown(k);
+				keyUp(k);
+			}
+			return true;
+		}
 
-		switch (event.getKeyCode()) {
+		if (k == 0) switch (event.getKeyCode()) {
 		case KeyEvent.KEYCODE_DEL:
 			k = 0x0008;
 			break;
@@ -360,7 +368,7 @@ public class MainActivity extends Activity {
 		if (event.isCtrlPressed()) {
 			keyDown(0xF017);
 		}
-		if (event.isAltPressed()) {
+		if (event.isAltPressed() && k < 128) {
 			keyDown(0xF015);
 		}
 
@@ -374,7 +382,7 @@ public class MainActivity extends Activity {
 		if (event.isCtrlPressed()) {
 			keyUp(0xF017);
 		}
-		if (event.isAltPressed()) {
+		if (event.isAltPressed() && k < 128) {
 			keyUp(0xF015);
 		}
 
