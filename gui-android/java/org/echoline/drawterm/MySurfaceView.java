@@ -44,29 +44,38 @@ public class MySurfaceView extends SurfaceView implements SurfaceHolder.Callback
 
 			@Override
 			public boolean onTouch(View v, MotionEvent event) {
+				int buttons = 0;
 				CheckBox left = (CheckBox)mainActivity.findViewById(R.id.mouseLeft);
 				CheckBox middle = (CheckBox)mainActivity.findViewById(R.id.mouseMiddle);
 				CheckBox right = (CheckBox)mainActivity.findViewById(R.id.mouseRight);
 				CheckBox up = (CheckBox)mainActivity.findViewById(R.id.mouseUp);
 				CheckBox down = (CheckBox)mainActivity.findViewById(R.id.mouseDown);
-				int buttons = (left.isChecked()? 1: 0) |
-								(middle.isChecked()? 2: 0) |
-								(right.isChecked()? 4: 0) |
-								(up.isChecked()? 8: 0) |
-								(down.isChecked()? 16: 0);
+				CheckBox mnative = (CheckBox)mainActivity.findViewById(R.id.mouseNative);
+				if (mnative.isChecked()){
+					buttons = 0;
+					buttons |= event.getButtonState() == MotionEvent.BUTTON_PRIMARY ? 1 : 0;
+					buttons |= event.getButtonState() == MotionEvent.BUTTON_SECONDARY ? 4 : 0;
+					buttons |= event.getButtonState() == MotionEvent.BUTTON_TERTIARY ? 2 : 0;
+				} else {
+					buttons = (left.isChecked()?   1: 0) |
+					          (middle.isChecked()? 2: 0) |
+					          (right.isChecked()?  4: 0) |
+					          (up.isChecked()?     8: 0) |
+					          (down.isChecked()?  16: 0);
+				}
 				if (event.getAction() == MotionEvent.ACTION_DOWN) {
-					mouse[0] = Math.round(event.getX());
-					mouse[1] = Math.round(event.getY());
+					mouse[0] = Math.round(event.getRawX()-v.getX());
+					mouse[1] = Math.round(event.getRawY()-v.getY());
 					mouse[2] = buttons;
 					mainActivity.setMouse(mouse);
 				} else if (event.getAction() == MotionEvent.ACTION_MOVE) {
-					mouse[0] = Math.round(event.getX());
-					mouse[1] = Math.round(event.getY());
+					mouse[0] = Math.round(event.getRawX()-v.getX());
+					mouse[1] = Math.round(event.getRawY()-v.getY());
 					mouse[2] = buttons;
 					mainActivity.setMouse(mouse);
 				} else if (event.getAction() == MotionEvent.ACTION_UP) {
-					mouse[0] = Math.round(event.getX());
-					mouse[1] = Math.round(event.getY());
+					mouse[0] = Math.round(event.getRawX()-v.getX());
+					mouse[1] = Math.round(event.getRawY()-v.getY());
 					mouse[2] = 0;
 					mainActivity.setMouse(mouse);
 				}
