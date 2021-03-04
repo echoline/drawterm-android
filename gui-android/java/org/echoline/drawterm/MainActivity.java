@@ -18,6 +18,7 @@ import android.util.Log;
 import android.view.Display;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.Window;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.WindowManager;
@@ -211,10 +212,8 @@ public class MainActivity extends Activity {
 			}
 		});
 
-		int rid = res.getIdentifier("navigation_bar_height", "dimen", "android");
-		if (rid > 0) {
-			hp -= res.getDimensionPixelSize(rid);
-		}
+		View contentView = findViewById(Window.ID_ANDROID_CONTENT);
+		hp -= contentView.getTop();
 		LinearLayout ll = (LinearLayout)findViewById(R.id.dtButtons);
 		hp -= ll.getHeight();
 
