@@ -68,7 +68,7 @@ public class MySurfaceView extends SurfaceView implements SurfaceHolder.Callback
 					          (down.isChecked()?  16: 0);
 				}
 
-				float correction = event.getRawY()/screenHeight * contentView.getY();
+				float correction = (event.getRawY()-contentView.getY())/screenHeight * contentView.getY();
 				mouse[0] = Math.round(event.getRawX()-contentView.getX());
 				mouse[1] = Math.round(event.getRawY()-contentView.getY()-buttonsarea.getHeight()+correction);
 
