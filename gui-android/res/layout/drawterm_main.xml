@@ -40,5 +40,9 @@
             android:text="kb"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" />
+        <CheckBox
+            android:id="@+id/mouseNative"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent" />
     </LinearLayout>
 </LinearLayout>
